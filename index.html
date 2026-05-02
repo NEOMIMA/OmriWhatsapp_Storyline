@@ -1,218 +1,275 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Phone, Video, MoreVertical, Send, Mic, Camera, Paperclip, Smile } from 'lucide-react';
-
-const chatData = [
-  { id: 1, sender: 'יואב', text: 'יש לי סרטון של אורי מההפסקה 😂', avatar: 'יואב.jpg', color: 'text-red-500' },
-  { id: 2, sender: 'יואב', text: 'שולחח', avatar: 'יואב.jpg', color: 'text-red-500' },
-  { id: 3, sender: 'אורי', text: 'אל תשלח. תמחק את זה.', avatar: 'אורי.jpg', color: 'text-blue-500' },
-  { id: 4, sender: 'עומרי', text: 'יואב עזוב… זה לא מצחיק.', avatar: 'עומרי.jpg', color: 'text-purple-600' },
-  { id: 5, sender: 'יואב', text: 'מה אתם כבדים זה רק בצחוק', avatar: 'יואב.jpg', color: 'text-red-500' }
-];
-
-export default function App() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [displayedMessages, setDisplayedMessages] = useState([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingUser, setTypingUser] = useState(null);
-  const messagesEndRef = useRef(null);
-
-  // לוגיקת האנימציה של השיחה
-  useEffect(() => {
-    if (currentStep < chatData.length) {
-      const message = chatData[currentStep];
-      
-      // מציג "מקליד..."
-      setTypingUser(message);
-      setIsTyping(true);
-      
-      // זמן ההקלדה (זמן אקראי בין 1 ל-2 שניות לתחושה טבעית)
-      const typingDuration = Math.floor(Math.random() * 1000) + 1000;
-      
-      const typingTimer = setTimeout(() => {
-        setIsTyping(false);
-        setDisplayedMessages(prev => [...prev, message]);
-        
-        // השהייה לפני ההודעה הבאה
-        setTimeout(() => {
-          setCurrentStep(prev => prev + 1);
-        }, 800);
-        
-      }, typingDuration);
-      
-      return () => clearTimeout(typingTimer);
-    }
-  }, [currentStep]);
-
-  // גלילה אוטומטית למטה כשנוספת הודעה חדשה
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [displayedMessages, isTyping]);
-
-  const restartAnimation = () => {
-    setDisplayedMessages([]);
-    setCurrentStep(0);
-    setIsTyping(false);
-    setTypingUser(null);
-  };
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-transparent p-4 font-sans" dir="rtl">
-      {/* מסגרת המכשיר הנייד - אייפון 16 */}
-      <div className="w-full max-w-[390px] h-[844px] bg-[#efeae2] flex flex-col rounded-[3.5rem] shadow-2xl overflow-hidden border-[12px] border-black relative">
-        
-        {/* אי הדינמי (Dynamic Island) */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-full z-50"></div>
-        
-        {/* סמן הבית למטה (Home Indicator) */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black rounded-full z-50"></div>
-
-        {/* כותרת עליונה - סגנון WhatsApp iOS */}
-        <div className="bg-[#f6f6f6]/95 backdrop-blur-md text-black flex items-center justify-between z-10 pt-14 pb-2 px-2 shadow-[0_0.5px_0_rgba(0,0,0,0.1)] relative">
-          <div className="flex items-center gap-1 cursor-pointer w-[70%]">
-            <div className="flex items-center text-[#007aff]">
-              <ArrowRight size={26} strokeWidth={1.5} />
-              <span className="text-[17px] mr-0.5">1</span>
-            </div>
-            <div className="flex items-center gap-2 mr-1">
-              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden shrink-0">
-                <div className="flex flex-wrap w-full h-full p-[1px] gap-[1px] bg-white">
-                   <img src={encodeURI("יואב.jpg")} alt="יואב" className="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full" />
-                   <img src={encodeURI("אורי.jpg")} alt="אורי" className="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full" />
-                   <img src={encodeURI("עומרי.jpg")} alt="עומרי" className="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full mx-auto" />
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-[16px] leading-tight">הבנים של ד'5</span>
-                <span className="text-[12px] text-gray-500 line-clamp-1">
-                  {isTyping && typingUser ? `${typingUser.sender} מקליד/ה...` : 'יואב, אורי, עומרי, אתה'}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-[#007aff] px-3">
-            <Video size={26} strokeWidth={1.5} />
-            <Phone size={24} strokeWidth={1.5} />
-          </div>
-        </div>
-
-        {/* אזור ההודעות */}
-        <div 
-          className="flex-1 overflow-y-auto p-4 space-y-3 relative"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        >
-          {/* בועת הצפנה */}
-          <div className="flex justify-center mb-6">
-            <div className="bg-[#fef6c5] text-gray-700 text-[11px] py-1.5 px-3 rounded-lg shadow-sm text-center max-w-[85%]">
-              ההודעות והשיחות שלכם מוצפנות מקצה לקצה. אף אחד מחוץ לצ'אט הזה לא יכול לקרוא או להאזין להן.
-            </div>
-          </div>
-
-          {/* הצגת ההודעות */}
-          {displayedMessages.map((msg, index) => {
-            return (
-              <div key={index} className="flex gap-2 w-full animate-fade-in-up">
-                {/* תמונת פרופיל שמופיעה תמיד ליד כל הודעה */}
-                <div className="w-9 flex-shrink-0 flex flex-col justify-end">
-                  <img 
-                    src={encodeURI(msg.avatar)} 
-                    alt={msg.sender} 
-                    className="w-9 h-9 rounded-full object-cover shadow-sm mb-0.5 border border-gray-100"
-                  />
-                </div>
-
-                {/* בועת ההודעה - מראה iOS */}
-                <div className="bg-white relative max-w-[75%] rounded-2xl px-3 py-2 shadow-[0_1px_1px_rgba(0,0,0,0.05)] rounded-br-md">
-                  <div className="text-[15px] leading-snug text-gray-800 break-words flex flex-wrap items-end gap-2">
-                    <span>{msg.text}</span>
-                    <span className="text-[10px] text-gray-400 ml-auto pt-1 float-left">
-                      10:00
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* בועת הקלדה */}
-          {isTyping && typingUser && (
-            <div className="flex gap-2 w-full animate-fade-in">
-              <div className="w-9 flex-shrink-0 flex flex-col justify-end">
-                <img 
-                  src={encodeURI(typingUser.avatar)} 
-                  alt={typingUser.sender} 
-                  className="w-9 h-9 rounded-full object-cover shadow-sm mb-0.5 border border-gray-100"
-                />
-              </div>
-              <div className="bg-white relative max-w-[75%] rounded-2xl rounded-br-md px-4 py-3 shadow-[0_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} className="h-2"></div>
-        </div>
-
-        {/* כפתור הפעלה מחדש */}
-        {currentStep >= chatData.length && !isTyping && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-20 animate-fade-in rounded-[2.5rem]">
-            <button 
-              onClick={restartAnimation}
-              className="bg-[#007aff] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-[#005bb5] transition-transform hover:scale-105 active:scale-95"
-            >
-              הפעל אנימציה מחדש
-            </button>
-          </div>
-        )}
-
-        {/* שורת כתיבת הודעה - סגנון iOS */}
-        <div className="bg-[#f6f6f6] pt-2 pb-8 px-2 flex items-end gap-2 z-10 border-t border-gray-300">
-          <div className="text-[#007aff] p-1.5 shrink-0 mb-1 cursor-pointer">
-            <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          </div>
-          <div className="flex-1 bg-white border border-[#d1d1d6] rounded-full flex items-center min-h-[36px] px-3 py-1 mb-1 shadow-sm">
-            <input 
-              type="text" 
-              placeholder="" 
-              className="flex-1 bg-transparent outline-none text-[16px] leading-tight"
-              disabled
-            />
-            <div className="text-[#007aff] flex gap-3 shrink-0 items-center">
-               <Camera size={22} strokeWidth={1.5} className="cursor-pointer" />
-            </div>
-          </div>
-          <div className="text-[#007aff] p-1.5 shrink-0 mb-1 cursor-pointer">
-            <Mic size={24} strokeWidth={1.5} />
-          </div>
-        </div>
-
-      </div>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes fade-in-up {
-          0% {
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+<!DOCTYPE html>
+<html lang="he" dir="rtl" style="background: transparent;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אנימציית ווטסאפ - ד'5</title>
+    <!-- טעינת סגנונות עיצוב (Tailwind CSS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* אנימציות להופעת ההודעות ובועת ההקלדה */
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes fade-in {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
         .animate-fade-in-up {
-          animation: fade-in-up 0.3s ease-out forwards;
+            animation: fadeInUp 0.3s ease-out forwards;
         }
         .animate-fade-in {
-          animation: fade-in 0.3s ease-out forwards;
+            animation: fadeIn 0.3s ease-out forwards;
         }
-      `}} />
+        
+        /* הסתרת פס הגלילה לאסתטיקה נקייה יותר של אייפון */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="m-0 p-0 font-sans flex items-center justify-center min-h-screen" style="background: transparent;">
+
+    <!-- מסגרת המכשיר הנייד - אייפון 16 -->
+    <div class="w-full max-w-[390px] h-[844px] bg-[#efeae2] flex flex-col rounded-[3.5rem] shadow-2xl overflow-hidden border-[12px] border-black relative">
+        
+        <!-- אי הדינמי (Dynamic Island) -->
+        <div class="absolute top-3 left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-full z-50"></div>
+        
+        <!-- סמן הבית למטה (Home Indicator) -->
+        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black rounded-full z-50"></div>
+
+        <!-- כותרת עליונה - סגנון WhatsApp iOS -->
+        <div class="bg-[#f6f6f6]/95 backdrop-blur-md text-black flex items-center justify-between z-10 pt-14 pb-2 px-2 shadow-[0_0.5px_0_rgba(0,0,0,0.1)] relative">
+            <div class="flex items-center gap-1 cursor-pointer w-[70%]">
+                <div class="flex items-center text-[#007aff]">
+                    <!-- חץ חזור -->
+                    <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                    <span class="text-[17px] mr-0.5">1</span>
+                </div>
+                <div class="flex items-center gap-2 mr-1">
+                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden shrink-0">
+                        <div class="flex flex-wrap w-full h-full p-[1px] gap-[1px] bg-white">
+                            <img src="יואב.jpg" alt="יואב" class="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full" />
+                            <img src="אורי.jpg" alt="אורי" class="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full" />
+                            <img src="עומרי.jpg" alt="עומרי" class="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full mx-auto" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-[16px] leading-tight">הבנים של ד'5</span>
+                        <span id="header-status" class="text-[12px] text-gray-500 line-clamp-1">יואב, אורי, אתה</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-[#007aff] px-3">
+                <!-- אייקון וידאו -->
+                <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                </svg>
+                <!-- אייקון טלפון -->
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- אזור ההודעות -->
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3 relative no-scrollbar" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
+            
+            <!-- בועת הצפנה -->
+            <div class="flex justify-center mb-6">
+                <div class="bg-[#fef6c5] text-gray-700 text-[11px] py-1.5 px-3 rounded-lg shadow-sm text-center max-w-[85%]">
+                    ההודעות והשיחות שלכם מוצפנות מקצה לקצה. אף אחד מחוץ לצ'אט הזה לא יכול לקרוא או להאזין להן.
+                </div>
+            </div>
+
+            <!-- ההודעות יתווספו לכאן באופן דינמי -->
+            <div id="messages-wrapper" class="space-y-3"></div>
+            
+            <!-- ריווח קטן בסוף -->
+            <div class="h-2"></div>
+        </div>
+
+        <!-- כפתור הפעלה מחדש -->
+        <div id="replay-container" class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-20 animate-fade-in rounded-[2.5rem] hidden">
+            <button onclick="startAnimation()" class="bg-[#007aff] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-[#005bb5] transition-transform hover:scale-105 active:scale-95">
+                הפעל אנימציה מחדש
+            </button>
+        </div>
+
+        <!-- שורת כתיבת הודעה - סגנון iOS -->
+        <div class="bg-[#f6f6f6] pt-2 pb-8 px-2 flex items-end gap-2 z-10 border-t border-gray-300">
+            <div class="text-[#007aff] p-1.5 shrink-0 mb-1 cursor-pointer">
+                <!-- אייקון פלוס (+) -->
+                <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+            <div class="flex-1 bg-white border border-[#d1d1d6] rounded-full flex items-center min-h-[36px] px-3 py-1 mb-1 shadow-sm">
+                <input id="chat-input" type="text" placeholder="" class="flex-1 bg-transparent outline-none text-[16px] leading-tight text-black" disabled />
+                <div class="text-[#007aff] flex gap-3 shrink-0 items-center">
+                    <!-- אייקון מצלמה -->
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" class="cursor-pointer">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <div class="text-[#007aff] p-1.5 shrink-0 mb-1 cursor-pointer">
+                <!-- אייקון מיקרופון -->
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            </div>
+        </div>
+
     </div>
-  );
-}
+
+    <!-- לוגיקת האנימציה - JavaScript טהור -->
+    <script>
+        const chatData = [
+            { sender: 'יואב', text: 'יש לי סרטון של אורי מההפסקה 😂', avatar: 'יואב.jpg' },
+            { sender: 'יואב', text: 'שולחח', avatar: 'יואב.jpg' },
+            { sender: 'אורי', text: 'אל תשלח. תמחק את זה.', avatar: 'אורי.jpg' },
+            { sender: 'עומרי', text: 'יואב עזוב… זה לא מצחיק.', avatar: 'עומרי.jpg' },
+            { sender: 'יואב', text: 'מה אתם כבדים זה רק בצחוק', avatar: 'יואב.jpg' }
+        ];
+
+        const messagesWrapper = document.getElementById('messages-wrapper');
+        const chatContainer = document.getElementById('chat-container');
+        const replayContainer = document.getElementById('replay-container');
+        const headerStatus = document.getElementById('header-status');
+
+        // פונקציית השהייה קטנה שמחכה מספר אלפיות שנייה
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // פונקציה שגוללת למטה תמיד כשנוספת הודעה
+        const scrollToBottom = () => {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        };
+
+        // הפונקציה המרכזית שמפעילה את האנימציה
+        async function startAnimation() {
+            // איפוס
+            messagesWrapper.innerHTML = '';
+            replayContainer.classList.add('hidden');
+            document.getElementById('chat-input').value = '';
+
+            for (let i = 0; i < chatData.length; i++) {
+                const msg = chatData[i];
+                const isMine = msg.sender === 'עומרי';
+                
+                if (isMine) {
+                    // אנימציית הקלדה בתוך תיבת הטקסט (מנקודת המבט של עומרי)
+                    headerStatus.innerText = 'יואב, אורי, אתה';
+                    const inputField = document.getElementById('chat-input');
+                    let typedText = '';
+                    for (let char of msg.text) {
+                        typedText += char;
+                        inputField.value = typedText;
+                        await wait(Math.floor(Math.random() * 40) + 30); // קצב הקלדה
+                    }
+                    await wait(300); // השהייה קלה לפני "השליחה"
+                    inputField.value = '';
+                } else {
+                    // עדכון סטטוס למעלה ל-"מקליד/ה..." להודעות נכנסות
+                    headerStatus.innerText = `${msg.sender} מקליד/ה...`;
+
+                    // יצירת והצגת בועת ההקלדה (3 הנקודות)
+                    const typingId = `typing-${i}`;
+                    
+                    const typingHTML = `
+                        <div id="${typingId}" class="flex gap-2 w-full animate-fade-in">
+                            <div class="w-9 flex-shrink-0 flex flex-col justify-end">
+                                <img src="${msg.avatar}" alt="${msg.sender}" class="w-9 h-9 rounded-full object-cover shadow-sm mb-0.5 border border-gray-100" />
+                            </div>
+                            <div class="bg-white relative max-w-[75%] rounded-2xl rounded-br-md px-4 py-3 shadow-[0_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1">
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:-0.3s"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay:-0.15s"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            </div>
+                        </div>
+                    `;
+                    messagesWrapper.insertAdjacentHTML('beforeend', typingHTML);
+                    scrollToBottom();
+
+                    // זמן הקלדה אקראי בין שניה לשתי שניות (לתחושה טבעית)
+                    const typingDuration = Math.floor(Math.random() * 1000) + 1000;
+                    await wait(typingDuration);
+
+                    // מחיקת בועת ההקלדה
+                    document.getElementById(typingId).remove();
+                }
+
+                // הצגת ההודעה האמיתית - עיצוב שונה אם זה עומרי (אני) או מישהו אחר
+                const bubbleColor = isMine ? 'bg-[#e2ffc7]' : 'bg-white';
+                const roundedClass = isMine ? 'rounded-2xl rounded-bl-md' : 'rounded-2xl rounded-br-md';
+                const justifyClass = isMine ? 'justify-end' : '';
+
+                let messageHTML = '';
+                
+                if (isMine) {
+                    messageHTML = `
+                        <div class="flex gap-2 w-full animate-fade-in-up ${justifyClass}">
+                            <div class="${bubbleColor} relative max-w-[75%] px-3 py-2 shadow-[0_1px_1px_rgba(0,0,0,0.05)] ${roundedClass}">
+                                <div class="text-[15px] leading-snug text-gray-800 break-words flex flex-wrap items-end gap-2">
+                                    <span>${msg.text}</span>
+                                    <span class="text-[10px] text-gray-500 ml-auto pt-1 float-left flex items-center gap-0.5">
+                                        10:00
+                                        <svg viewBox="0 0 16 15" width="14" height="14" class="fill-[#53bdeb]"><path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="w-9 flex-shrink-0 flex flex-col justify-end">
+                                <img src="${msg.avatar}" alt="${msg.sender}" class="w-9 h-9 rounded-full object-cover shadow-sm mb-0.5 border border-gray-100" />
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    messageHTML = `
+                        <div class="flex gap-2 w-full animate-fade-in-up ${justifyClass}">
+                            <div class="w-9 flex-shrink-0 flex flex-col justify-end">
+                                <img src="${msg.avatar}" alt="${msg.sender}" class="w-9 h-9 rounded-full object-cover shadow-sm mb-0.5 border border-gray-100" />
+                            </div>
+                            <div class="${bubbleColor} relative max-w-[75%] px-3 py-2 shadow-[0_1px_1px_rgba(0,0,0,0.05)] ${roundedClass}">
+                                <div class="text-[15px] leading-snug text-gray-800 break-words flex flex-wrap items-end gap-2">
+                                    <span>${msg.text}</span>
+                                    <span class="text-[10px] text-gray-400 ml-auto pt-1 float-left">10:00</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                messagesWrapper.insertAdjacentHTML('beforeend', messageHTML);
+                scrollToBottom();
+
+                // חזרה לסטטוס רגיל והמתנה קצרה לפני ההודעה הבאה
+                headerStatus.innerText = 'יואב, אורי, אתה';
+                await wait(800);
+            }
+
+            // הצגת כפתור החזרה בסיום
+            replayContainer.classList.remove('hidden');
+        }
+
+        // הפעלה אוטומטית ברגע שהדף נטען
+        window.onload = () => {
+            setTimeout(startAnimation, 500); // השהייה קלה להתאפסות המסך
+        };
+    </script>
+</body>
+</html>
