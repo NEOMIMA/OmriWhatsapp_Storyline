@@ -1,0 +1,218 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowRight, Phone, Video, MoreVertical, Send, Mic, Camera, Paperclip, Smile } from 'lucide-react';
+
+const chatData = [
+  { id: 1, sender: 'יואב', text: 'יש לי סרטון של אורי מההפסקה 😂', avatar: 'יואב.jpg', color: 'text-red-500' },
+  { id: 2, sender: 'יואב', text: 'שולחח', avatar: 'יואב.jpg', color: 'text-red-500' },
+  { id: 3, sender: 'אורי', text: 'אל תשלח. תמחק את זה.', avatar: 'אורי.jpg', color: 'text-blue-500' },
+  { id: 4, sender: 'עומרי', text: 'יואב עזוב… זה לא מצחיק.', avatar: 'עומרי.jpg', color: 'text-purple-600' },
+  { id: 5, sender: 'יואב', text: 'מה אתם כבדים זה רק בצחוק', avatar: 'יואב.jpg', color: 'text-red-500' }
+];
+
+export default function App() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [displayedMessages, setDisplayedMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState(null);
+  const messagesEndRef = useRef(null);
+
+  // לוגיקת האנימציה של השיחה
+  useEffect(() => {
+    if (currentStep < chatData.length) {
+      const message = chatData[currentStep];
+      
+      // מציג "מקליד..."
+      setTypingUser(message);
+      setIsTyping(true);
+      
+      // זמן ההקלדה (זמן אקראי בין 1 ל-2 שניות לתחושה טבעית)
+      const typingDuration = Math.floor(Math.random() * 1000) + 1000;
+      
+      const typingTimer = setTimeout(() => {
+        setIsTyping(false);
+        setDisplayedMessages(prev => [...prev, message]);
+        
+        // השהייה לפני ההודעה הבאה
+        setTimeout(() => {
+          setCurrentStep(prev => prev + 1);
+        }, 800);
+        
+      }, typingDuration);
+      
+      return () => clearTimeout(typingTimer);
+    }
+  }, [currentStep]);
+
+  // גלילה אוטומטית למטה כשנוספת הודעה חדשה
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [displayedMessages, isTyping]);
+
+  const restartAnimation = () => {
+    setDisplayedMessages([]);
+    setCurrentStep(0);
+    setIsTyping(false);
+    setTypingUser(null);
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-transparent p-4 font-sans" dir="rtl">
+      {/* מסגרת המכשיר הנייד - אייפון 16 */}
+      <div className="w-full max-w-[390px] h-[844px] bg-[#efeae2] flex flex-col rounded-[3.5rem] shadow-2xl overflow-hidden border-[12px] border-black relative">
+        
+        {/* אי הדינמי (Dynamic Island) */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-full z-50"></div>
+        
+        {/* סמן הבית למטה (Home Indicator) */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black rounded-full z-50"></div>
+
+        {/* כותרת עליונה - סגנון WhatsApp iOS */}
+        <div className="bg-[#f6f6f6]/95 backdrop-blur-md text-black flex items-center justify-between z-10 pt-14 pb-2 px-2 shadow-[0_0.5px_0_rgba(0,0,0,0.1)] relative">
+          <div className="flex items-center gap-1 cursor-pointer w-[70%]">
+            <div className="flex items-center text-[#007aff]">
+              <ArrowRight size={26} strokeWidth={1.5} />
+              <span className="text-[17px] mr-0.5">1</span>
+            </div>
+            <div className="flex items-center gap-2 mr-1">
+              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden shrink-0">
+                <div className="flex flex-wrap w-full h-full p-[1px] gap-[1px] bg-white">
+                   <img src={encodeURI("יואב.jpg")} alt="יואב" className="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full" />
+                   <img src={encodeURI("אורי.jpg")} alt="אורי" className="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full" />
+                   <img src={encodeURI("עומרי.jpg")} alt="עומרי" className="w-[calc(50%-1px)] h-[calc(50%-1px)] object-cover rounded-full mx-auto" />
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-[16px] leading-tight">הבנים של ד'5</span>
+                <span className="text-[12px] text-gray-500 line-clamp-1">
+                  {isTyping && typingUser ? `${typingUser.sender} מקליד/ה...` : 'יואב, אורי, עומרי, אתה'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-[#007aff] px-3">
+            <Video size={26} strokeWidth={1.5} />
+            <Phone size={24} strokeWidth={1.5} />
+          </div>
+        </div>
+
+        {/* אזור ההודעות */}
+        <div 
+          className="flex-1 overflow-y-auto p-4 space-y-3 relative"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}
+        >
+          {/* בועת הצפנה */}
+          <div className="flex justify-center mb-6">
+            <div className="bg-[#fef6c5] text-gray-700 text-[11px] py-1.5 px-3 rounded-lg shadow-sm text-center max-w-[85%]">
+              ההודעות והשיחות שלכם מוצפנות מקצה לקצה. אף אחד מחוץ לצ'אט הזה לא יכול לקרוא או להאזין להן.
+            </div>
+          </div>
+
+          {/* הצגת ההודעות */}
+          {displayedMessages.map((msg, index) => {
+            return (
+              <div key={index} className="flex gap-2 w-full animate-fade-in-up">
+                {/* תמונת פרופיל שמופיעה תמיד ליד כל הודעה */}
+                <div className="w-9 flex-shrink-0 flex flex-col justify-end">
+                  <img 
+                    src={encodeURI(msg.avatar)} 
+                    alt={msg.sender} 
+                    className="w-9 h-9 rounded-full object-cover shadow-sm mb-0.5 border border-gray-100"
+                  />
+                </div>
+
+                {/* בועת ההודעה - מראה iOS */}
+                <div className="bg-white relative max-w-[75%] rounded-2xl px-3 py-2 shadow-[0_1px_1px_rgba(0,0,0,0.05)] rounded-br-md">
+                  <div className="text-[15px] leading-snug text-gray-800 break-words flex flex-wrap items-end gap-2">
+                    <span>{msg.text}</span>
+                    <span className="text-[10px] text-gray-400 ml-auto pt-1 float-left">
+                      10:00
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* בועת הקלדה */}
+          {isTyping && typingUser && (
+            <div className="flex gap-2 w-full animate-fade-in">
+              <div className="w-9 flex-shrink-0 flex flex-col justify-end">
+                <img 
+                  src={encodeURI(typingUser.avatar)} 
+                  alt={typingUser.sender} 
+                  className="w-9 h-9 rounded-full object-cover shadow-sm mb-0.5 border border-gray-100"
+                />
+              </div>
+              <div className="bg-white relative max-w-[75%] rounded-2xl rounded-br-md px-4 py-3 shadow-[0_1px_1px_rgba(0,0,0,0.05)] flex items-center gap-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} className="h-2"></div>
+        </div>
+
+        {/* כפתור הפעלה מחדש */}
+        {currentStep >= chatData.length && !isTyping && (
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-20 animate-fade-in rounded-[2.5rem]">
+            <button 
+              onClick={restartAnimation}
+              className="bg-[#007aff] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-[#005bb5] transition-transform hover:scale-105 active:scale-95"
+            >
+              הפעל אנימציה מחדש
+            </button>
+          </div>
+        )}
+
+        {/* שורת כתיבת הודעה - סגנון iOS */}
+        <div className="bg-[#f6f6f6] pt-2 pb-8 px-2 flex items-end gap-2 z-10 border-t border-gray-300">
+          <div className="text-[#007aff] p-1.5 shrink-0 mb-1 cursor-pointer">
+            <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </div>
+          <div className="flex-1 bg-white border border-[#d1d1d6] rounded-full flex items-center min-h-[36px] px-3 py-1 mb-1 shadow-sm">
+            <input 
+              type="text" 
+              placeholder="" 
+              className="flex-1 bg-transparent outline-none text-[16px] leading-tight"
+              disabled
+            />
+            <div className="text-[#007aff] flex gap-3 shrink-0 items-center">
+               <Camera size={22} strokeWidth={1.5} className="cursor-pointer" />
+            </div>
+          </div>
+          <div className="text-[#007aff] p-1.5 shrink-0 mb-1 cursor-pointer">
+            <Mic size={24} strokeWidth={1.5} />
+          </div>
+        </div>
+
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes fade-in-up {
+          0% {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        @keyframes fade-in {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.3s ease-out forwards;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
+        }
+      `}} />
+    </div>
+  );
+}
